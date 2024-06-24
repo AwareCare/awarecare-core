@@ -62,10 +62,14 @@ _LOGGER = logging.getLogger(__name__)
 ATTR_SOURCE = "source"
 ATTR_USER_ID = "user_id"
 ATTR_DEVICE_TRACKERS = "device_trackers"
+ATTR_ROLE = "role"
+ATTR_STATUS = "status"
 
 CONF_DEVICE_TRACKERS = "device_trackers"
 CONF_USER_ID = "user_id"
 CONF_PICTURE = "picture"
+CONF_ROLE = "role"
+CONF_STATUS = "status"
 
 STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 2
@@ -81,6 +85,8 @@ PERSON_SCHEMA = vol.Schema(
             cv.ensure_list, cv.entities_domain(DEVICE_TRACKER_DOMAIN)
         ),
         vol.Optional(CONF_PICTURE): cv.string,
+        vol.Required(CONF_ROLE): cv.string,
+        vol.Required(CONF_STATUS, default="ok"): cv.string,
     }
 )
 
@@ -98,6 +104,8 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_create_person(
     hass: HomeAssistant,
     name: str,
+    role: str,
+    status: str,
     *,
     user_id: str | None = None,
     device_trackers: list[str] | None = None,
@@ -108,6 +116,8 @@ async def async_create_person(
             ATTR_NAME: name,
             ATTR_USER_ID: user_id,
             CONF_DEVICE_TRACKERS: device_trackers or [],
+            ATTR_ROLE: role,
+            ATTR_STATUS: status,
         }
     )
 
@@ -174,6 +184,8 @@ CREATE_FIELDS = {
         cv.ensure_list, cv.entities_domain(DEVICE_TRACKER_DOMAIN)
     ),
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
+    vol.Required(CONF_ROLE): vol.Any(str, None),
+    vol.Required(CONF_STATUS): vol.All(str, vol.Length(min=1)),
 }
 
 
@@ -184,6 +196,8 @@ UPDATE_FIELDS = {
         cv.ensure_list, cv.entities_domain(DEVICE_TRACKER_DOMAIN)
     ),
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
+    vol.Optional(CONF_ROLE): vol.Any(str, None),
+    vol.Optional(CONF_STATUS): vol.All(str, vol.Length(min=1)),
 }
 
 
@@ -424,15 +438,29 @@ class Person(
         self._unsub_track_device: Callable[[], None] | None = None
         self._attr_state: str | None = None
         self.device_trackers: list[str] = []
+        self._role: str | None = None
+        self._status: str | None = None
 
         self._attr_unique_id = config[CONF_ID]
         self._set_attrs_from_config()
+
+    @property
+    def role(self) -> str:
+        """Return the current type of the Person."""
+        return self._role
+
+    @property
+    def status(self) -> str:
+        """Return the current status of the Person."""
+        return self._status
 
     def _set_attrs_from_config(self) -> None:
         """Set attributes from config."""
         self._attr_name = self._config[CONF_NAME]
         self._attr_entity_picture = self._config.get(CONF_PICTURE)
         self.device_trackers = self._config[CONF_DEVICE_TRACKERS]
+        self._role = self._config[ATTR_ROLE]
+        self._status = self._config[ATTR_STATUS]
 
     @classmethod
     def from_storage(cls, config: ConfigType) -> Self:
@@ -554,6 +582,8 @@ class Person(
             ATTR_EDITABLE: self.editable,
             ATTR_ID: self.unique_id,
             ATTR_DEVICE_TRACKERS: self.device_trackers,
+            ATTR_ROLE: self._role,
+            ATTR_STATUS: self._status,
         }
 
         if self._latitude is not None:
