@@ -85,8 +85,8 @@ PERSON_SCHEMA = vol.Schema(
             cv.ensure_list, cv.entities_domain(DEVICE_TRACKER_DOMAIN)
         ),
         vol.Optional(CONF_PICTURE): cv.string,
-        vol.Required(CONF_ROLE): cv.string,
-        vol.Required(CONF_STATUS, default="ok"): cv.string,
+        vol.Optional(CONF_ROLE): cv.string,
+        vol.Optional(CONF_STATUS, default="ok"): cv.string,
     }
 )
 
@@ -184,8 +184,8 @@ CREATE_FIELDS = {
         cv.ensure_list, cv.entities_domain(DEVICE_TRACKER_DOMAIN)
     ),
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
-    vol.Required(CONF_ROLE): vol.Any(str, None),
-    vol.Required(CONF_STATUS): vol.All(str, vol.Length(min=1)),
+    vol.Optional(CONF_ROLE): vol.Any(str, None),
+    vol.Optional(CONF_STATUS): vol.Any(str, None),
 }
 
 
@@ -197,7 +197,7 @@ UPDATE_FIELDS = {
     ),
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
     vol.Optional(CONF_ROLE): vol.Any(str, None),
-    vol.Optional(CONF_STATUS): vol.All(str, vol.Length(min=1)),
+    vol.Optional(CONF_STATUS): vol.Any(str, None),
 }
 
 
