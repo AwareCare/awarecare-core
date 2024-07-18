@@ -45,6 +45,7 @@ def websocket_list_areas(
         vol.Optional("labels"): [str],
         vol.Required("name"): str,
         vol.Optional("picture"): vol.Any(str, None),
+        vol.Optional("status"): vol.Any(str, None),
     }
 )
 @websocket_api.require_admin
@@ -111,6 +112,7 @@ def websocket_delete_area(
         vol.Optional("labels"): [str],
         vol.Optional("name"): str,
         vol.Optional("picture"): vol.Any(str, None),
+        vol.Optional("status"): vol.Any(str, None),
     }
 )
 @websocket_api.require_admin

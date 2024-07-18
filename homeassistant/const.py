@@ -522,6 +522,7 @@ ATTR_ENTITY_ID: Final = "entity_id"
 
 # Contains one string or a list of strings, each being an area id
 ATTR_AREA_ID: Final = "area_id"
+ATTR_AREA_STATUS: Final = "area_status"
 
 # Contains one string, the device ID
 ATTR_DEVICE_ID: Final = "device_id"

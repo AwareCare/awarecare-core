@@ -44,6 +44,7 @@ class _AreaStoreData(TypedDict):
     labels: list[str]
     name: str
     picture: str | None
+    status: str | None
 
 
 class AreasRegistryStoreData(TypedDict):
@@ -69,6 +70,7 @@ class AreaEntry(NormalizedNameBaseRegistryEntry):
     id: str
     labels: set[str] = dataclasses.field(default_factory=set)
     picture: str | None
+    status: str | None
 
     @cached_property
     def json_fragment(self) -> json_fragment:
@@ -83,6 +85,7 @@ class AreaEntry(NormalizedNameBaseRegistryEntry):
                     "labels": list(self.labels),
                     "name": self.name,
                     "picture": self.picture,
+                    "status": self.status,
                 }
             )
         )
@@ -124,6 +127,11 @@ class AreaRegistryStore(Store[AreasRegistryStoreData]):
                 # Version 1.6 adds labels
                 for area in old_data["areas"]:
                     area["labels"] = []
+
+            if old_minor_version < 7:
+                # Version 1.7 adds labels
+                for area in old_data["areas"]:
+                    area["status"] = None
 
         if old_major_version > 1:
             raise NotImplementedError
@@ -222,6 +230,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
         icon: str | None = None,
         labels: set[str] | None = None,
         picture: str | None = None,
+        status: str | None = None,
     ) -> AreaEntry:
         """Create a new area."""
         self.hass.verify_event_loop_thread("area_registry.async_create")
@@ -240,6 +249,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
             name=name,
             normalized_name=normalized_name,
             picture=picture,
+            status=status,
         )
         assert area.id is not None
         self.areas[area.id] = area
@@ -279,6 +289,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
         labels: set[str] | UndefinedType = UNDEFINED,
         name: str | UndefinedType = UNDEFINED,
         picture: str | None | UndefinedType = UNDEFINED,
+        status: str | None | UndefinedType = UNDEFINED,
     ) -> AreaEntry:
         """Update name of area."""
         updated = self._async_update(
@@ -289,6 +300,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
             labels=labels,
             name=name,
             picture=picture,
+            status=status,
         )
         # Since updated may be the old or the new and we always fire
         # an event even if nothing has changed we cannot use async_fire_internal
@@ -311,6 +323,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
         labels: set[str] | UndefinedType = UNDEFINED,
         name: str | UndefinedType = UNDEFINED,
         picture: str | None | UndefinedType = UNDEFINED,
+        status: str | None | UndefinedType = UNDEFINED,
     ) -> AreaEntry:
         """Update name of area."""
         old = self.areas[area_id]
@@ -322,6 +335,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
             ("icon", icon),
             ("labels", labels),
             ("picture", picture),
+            ("status", status),
             ("floor_id", floor_id),
         ):
             if value is not UNDEFINED and value != getattr(old, attr_name):
@@ -361,6 +375,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
                     name=area["name"],
                     normalized_name=normalized_name,
                     picture=area["picture"],
+                    status=None,  # area["status"],
                 )
 
         self.areas = areas
@@ -379,6 +394,7 @@ class AreaRegistry(BaseRegistry[AreasRegistryStoreData]):
                     "labels": list(entry.labels),
                     "name": entry.name,
                     "picture": entry.picture,
+                    "status": entry.status,
                 }
                 for entry in self.areas.values()
             ]
