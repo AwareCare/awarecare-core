@@ -1,0 +1,8 @@
+{
+  "services": {
+    "reload": {
+      "name": "[%key:common::action::reload%]",
+      "description": "Reloads rooms from the YAML-configuration."
+    }
+  }
+}

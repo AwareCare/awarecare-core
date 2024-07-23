@@ -1,0 +1,9 @@
+{
+  "domain": "room",
+  "name": "Room",
+  "codeowners": ["@awarecare"],
+  "config_flow": false,
+  "documentation": "https://www.awarecareschools.com",
+  "integration_type": "system",
+  "quality_scale": "internal"
+}

@@ -195,6 +195,7 @@ DEFAULT_INTEGRATIONS = {
     "script",
     "tag",
     "zone",
+    "room",
     #
     # Built-in helpers:
     "counter",

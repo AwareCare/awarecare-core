@@ -1,0 +1,21 @@
+reload:
+
+set_state:
+  target:
+    entity:
+      domain: room
+  fields:
+    context:
+      selector:
+        text:
+
+select_option:
+  target:
+    entity:
+      domain: select
+  fields:
+    option:
+      required: true
+      example: '"Ok"'
+      selector:
+        text:
