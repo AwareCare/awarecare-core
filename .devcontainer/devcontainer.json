@@ -10,6 +10,9 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
+  "mounts": [
+    "source=/home/klazos/awarecare/awarecare-frontend,target=/workspaces/frontend,type=bind,consistency=cached"
+  ],
   // Port 5683 udp is used by Shelly integration
   "appPort": ["8123:8123", "5683:5683/udp"],
   "runArgs": ["-e", "GIT_EDITOR=code --wait"],
