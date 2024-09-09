@@ -64,12 +64,14 @@ ATTR_USER_ID = "user_id"
 ATTR_DEVICE_TRACKERS = "device_trackers"
 ATTR_ROLE = "role"
 ATTR_STATUS = "status"
+ATTR_CONTEXT = "context"
 
 CONF_DEVICE_TRACKERS = "device_trackers"
 CONF_USER_ID = "user_id"
 CONF_PICTURE = "picture"
 CONF_ROLE = "role"
 CONF_STATUS = "status"
+CONF_CONTEXT = "context"
 
 STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 2
@@ -87,6 +89,7 @@ PERSON_SCHEMA = vol.Schema(
         vol.Optional(CONF_PICTURE): cv.string,
         vol.Optional(CONF_ROLE): cv.string,
         vol.Optional(CONF_STATUS, default="ok"): cv.string,
+        vol.Optional(CONF_CONTEXT, default=""): cv.string,
     }
 )
 
@@ -106,6 +109,7 @@ async def async_create_person(
     name: str,
     role: str,
     status: str,
+    context: str,
     *,
     user_id: str | None = None,
     device_trackers: list[str] | None = None,
@@ -118,6 +122,7 @@ async def async_create_person(
             CONF_DEVICE_TRACKERS: device_trackers or [],
             ATTR_ROLE: role,
             ATTR_STATUS: status,
+            ATTR_CONTEXT: context,
         }
     )
 
@@ -186,6 +191,7 @@ CREATE_FIELDS = {
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
     vol.Optional(CONF_ROLE): vol.Any(str, None),
     vol.Optional(CONF_STATUS): vol.Any(str, None),
+    vol.Optional(CONF_CONTEXT): vol.Any(str, None),
 }
 
 
@@ -198,6 +204,7 @@ UPDATE_FIELDS = {
     vol.Optional(CONF_PICTURE): vol.Any(str, None),
     vol.Optional(CONF_ROLE): vol.Any(str, None),
     vol.Optional(CONF_STATUS): vol.Any(str, None),
+    vol.Optional(CONF_CONTEXT): vol.Any(str, None),
 }
 
 
@@ -440,6 +447,7 @@ class Person(
         self.device_trackers: list[str] = []
         self._role: str | None = None
         self._status: str | None = None
+        self._context: str | None = None
 
         self._attr_unique_id = config[CONF_ID]
         self._set_attrs_from_config()
@@ -454,6 +462,11 @@ class Person(
         """Return the current status of the Person."""
         return self._status
 
+    @property
+    def context(self) -> str:
+        """Return the current context (for the status) of the Person."""
+        return self._status
+
     def _set_attrs_from_config(self) -> None:
         """Set attributes from config."""
         self._attr_name = self._config[CONF_NAME]
@@ -461,6 +474,7 @@ class Person(
         self.device_trackers = self._config[CONF_DEVICE_TRACKERS]
         self._role = self._config[ATTR_ROLE]
         self._status = self._config[ATTR_STATUS]
+        # self._context = self._config[ATTR_CONTEXT]
 
     @classmethod
     def from_storage(cls, config: ConfigType) -> Self:
@@ -584,6 +598,7 @@ class Person(
             ATTR_DEVICE_TRACKERS: self.device_trackers,
             ATTR_ROLE: self._role,
             ATTR_STATUS: self._status,
+            ATTR_CONTEXT: self._context,
         }
 
         if self._latitude is not None:
