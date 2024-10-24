@@ -1,21 +1,19 @@
 reload:
 
-set_state:
+set_status:
   target:
     entity:
       domain: room
   fields:
-    context:
+    status:
+      example: "weapon"
       selector:
-        text:
-
-select_option:
-  target:
-    entity:
-      domain: select
-  fields:
-    option:
-      required: true
-      example: '"Ok"'
-      selector:
-        text:
+        select:
+          options:
+            - "ok"
+            - "weapon"
+            - "fire"
+            - "medical"
+            - "weather"
+            - "suspicious"
+            - "conflict"

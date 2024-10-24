@@ -3,6 +3,16 @@
     "reload": {
       "name": "[%key:common::action::reload%]",
       "description": "Reloads rooms from the YAML-configuration."
+    },
+    "set_status": {
+      "name": "Set Status",
+      "description": "Set the Room's emergency status",
+      "fields": {
+        "status": {
+          "name": "Status",
+          "description": "The emergency status to set"
+        }
+      }
     }
   }
 }

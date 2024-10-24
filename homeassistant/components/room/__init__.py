@@ -16,17 +16,18 @@ from homeassistant.const import (
     ATTR_LATITUDE,
     ATTR_LONGITUDE,
     ATTR_PERSONS,
+    CONF_COMMAND,
+    CONF_CONTEXT,
+    CONF_COORDS,
     CONF_ICON,
     CONF_ID,
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
     CONF_RADIUS,
-    CONF_COORDS,
-    CONF_CONTEXT,
-    CONF_COMMAND,
     CONF_RESPONSE,
     CONF_STATE,
+    CONF_STATUS,
     EVENT_CORE_CONFIG_UPDATE,
     SERVICE_RELOAD,
     STATE_UNAVAILABLE,
@@ -48,21 +49,27 @@ from homeassistant.helpers import (
     service,
     storage,
 )
+from homeassistant.helpers.entity_platform import (
+    AddEntitiesCallback,
+    async_get_current_platform,
+)
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.util.location import distance
 
 from .const import (
-    ATTR_RADIUS,
-    DOMAIN,
-    ATTR_COORDS,
-    ATTR_CONTEXT,
     ATTR_COMMAND,
+    ATTR_CONTEXT,
+    ATTR_COORDS,
+    ATTR_RADIUS,
     ATTR_RESPONSE,
-    SERVICE_SET_STATE,
-    SERVICE_SET_CONTEXT,
+    ATTR_STATE,
+    ATTR_STATUS,
+    DOMAIN,
     SERVICE_SET_COMMAND,
+    SERVICE_SET_CONTEXT,
     SERVICE_SET_RESPONSE,
+    SERVICE_SET_STATUS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,6 +88,7 @@ CREATE_FIELDS = {
     vol.Optional(CONF_RADIUS, default=DEFAULT_RADIUS): vol.Coerce(float),
     vol.Optional(CONF_ICON): cv.icon,
     vol.Optional(CONF_COORDS): cv.string,
+    vol.Optional(CONF_STATUS): cv.string,
     vol.Optional(CONF_CONTEXT): cv.string,
     vol.Optional(CONF_COMMAND): cv.string,
     vol.Optional(CONF_RESPONSE): cv.string,
@@ -95,6 +103,7 @@ UPDATE_FIELDS = {
     vol.Optional(CONF_RADIUS): vol.Coerce(float),
     vol.Optional(CONF_ICON): cv.icon,
     vol.Optional(CONF_COORDS): cv.string,
+    vol.Optional(CONF_STATUS): cv.string,
     vol.Optional(CONF_CONTEXT): cv.string,
     vol.Optional(CONF_COMMAND): cv.string,
     vol.Optional(CONF_RESPONSE): cv.string,
@@ -124,9 +133,9 @@ PLATFORMS = [
 ]
 
 RELOAD_SERVICE_SCHEMA = vol.Schema({})
-SET_STATE_SERVICE_SCHEMA = vol.Schema(
+SET_STATUS_SERVICE_SCHEMA = vol.Schema(
     {
-        vol.Required("state"): cv.string,
+        vol.Required("status"): cv.string,
     }
 )
 STORAGE_KEY = DOMAIN
@@ -303,6 +312,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         schema=RELOAD_SERVICE_SCHEMA,
     )
 
+    component.async_register_entity_service(
+        SERVICE_SET_STATUS,
+        {vol.Required(ATTR_STATUS): cv.string},
+        "async_set_status",
+    )
+
     async def core_config_updated(_: Event) -> None:
         """Handle core config updated."""
 
@@ -348,6 +363,7 @@ class Room(collection.CollectionEntity):
 
     def __init__(self, config: ConfigType) -> None:
         """Initialize the room."""
+        self._status: str | None = None
         self._config = config
         self.editable = True
         self._attrs: dict | None = None
@@ -359,6 +375,8 @@ class Room(collection.CollectionEntity):
         """Set the attributes from the config."""
         config = self._config
         name: str = config[CONF_NAME]
+        status: str = config.get(ATTR_STATUS, "ok")
+        self._status = status
         self._attr_name = name
         self._case_folded_name = name.casefold()
         self._attr_unique_id = config.get(CONF_ID)
@@ -381,9 +399,9 @@ class Room(collection.CollectionEntity):
         return room
 
     @property
-    def state(self) -> int:
-        """Return the state property really does nothing for a room."""
-        return len(self._persons_in_room)
+    def state(self) -> str | None:
+        """Return the state of the element."""
+        return self._status
 
     async def async_update_config(self, config: ConfigType) -> None:
         """Handle when the config is updated."""
@@ -436,6 +454,7 @@ class Room(collection.CollectionEntity):
             ATTR_LONGITUDE: self._config[CONF_LONGITUDE],
             ATTR_RADIUS: self._config[CONF_RADIUS],
             ATTR_COORDS: self._config[CONF_COORDS],
+            ATTR_STATUS: self._config.get(CONF_STATUS, ""),
             ATTR_CONTEXT: self._config.get(CONF_CONTEXT, ""),
             ATTR_COMMAND: self._config.get(CONF_COMMAND, ""),
             ATTR_RESPONSE: self._config.get(CONF_RESPONSE, ""),
@@ -447,3 +466,11 @@ class Room(collection.CollectionEntity):
     def _state_is_in_room(self, state: State | None) -> bool:
         """Return if given state is in room."""
         return state is not None and (state.state.casefold() == self._case_folded_name)
+
+    async def async_set_status(self, status: str) -> None:
+        """Set new preset mode."""
+        _LOGGER.warning("Setting room status to %s" % status)
+        self._status = status
+        self.async_write_ha_state()
+        # await self.hass.async_add_executor_job(self.alarm_trigger, code)
+        # await hass.state
