@@ -1,0 +1,5 @@
+docker buildx build --push -t dualbrain/awarecare-core:2024.06.0 .
+
+
+docker build -t dualbrain/awarecare-core:2024.06.0 .
+docker push dualbrain/awarecare-core:2024.06.0
