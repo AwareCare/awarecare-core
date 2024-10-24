@@ -107,9 +107,9 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_create_person(
     hass: HomeAssistant,
     name: str,
-    role: str,
-    status: str,
-    context: str,
+    role: str | None = None,
+    status: str | None = None,
+    context: str | None = None,
     *,
     user_id: str | None = None,
     device_trackers: list[str] | None = None,
@@ -474,7 +474,7 @@ class Person(
         self.device_trackers = self._config[CONF_DEVICE_TRACKERS]
         self._role = self._config[ATTR_ROLE]
         self._status = self._config[ATTR_STATUS]
-        # self._context = self._config[ATTR_CONTEXT]
+        self._context = self._config.get(ATTR_CONTEXT, "")
 
     @classmethod
     def from_storage(cls, config: ConfigType) -> Self:
