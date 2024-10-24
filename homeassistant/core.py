@@ -1897,13 +1897,18 @@ class State:
         Sends c (context) as a string if it only contains an id.
         """
         state_context = self.context
-        if state_context.parent_id is None and state_context.user_id is None:
-            context: dict[str, Any] | str = state_context.id
-        else:
-            # _as_dict is marked as protected
-            # to avoid callers outside of this module
-            # from misusing it by mistake.
-            context = state_context._as_dict  # noqa: SLF001
+        print(state_context)
+        try:
+            if state_context.parent_id is None and state_context.user_id is None:
+                context: dict[str, Any] | str = state_context.id
+            else:
+                # _as_dict is marked as protected
+                # to avoid callers outside of this module
+                # from misusing it by mistake.
+                context = state_context._as_dict  # noqa: SLF001
+        except AttributeError:
+            context: state_context
+
         compressed_state: CompressedState = {
             COMPRESSED_STATE_STATE: self.state,
             COMPRESSED_STATE_ATTRIBUTES: self.attributes,
@@ -2276,9 +2281,11 @@ class StateMachine:
 
         if same_state and same_attr:
             # mypy does not understand this is only possible if old_state is not None
-            old_last_reported = old_state.last_reported  # type: ignore[union-attr]
+            # type: ignore[union-attr]
+            old_last_reported = old_state.last_reported
             old_state.last_reported = now  # type: ignore[union-attr]
-            old_state.last_reported_timestamp = timestamp  # type: ignore[union-attr]
+            # type: ignore[union-attr]
+            old_state.last_reported_timestamp = timestamp
             self._bus.async_fire_internal(
                 EVENT_STATE_REPORTED,
                 {
